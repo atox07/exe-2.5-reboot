@@ -26,32 +26,7 @@ jobs:
         haxelib install flixel-ui 2.5.0 --quiet
         haxelib install hxcpp 4.2.1 --quiet
         haxelib install hscript --quiet
-        haxelib install discord_rpc --quiet
         haxelib install linc_luajit --quiet
-
-    - name: Fix Discord RPC C++ Library and Headers
-      run: |
-        cd "C:\haxelib\discord_rpc\1,0,0"
-        
-        # 1. Pulisce la cartella lib se esiste da build precedenti
-        if (Test-Path "lib") { Remove-Item -Recurse -Force "lib" }
-        New-Item -ItemType Directory -Path "lib" -Force | Out-Null
-        cd lib
-        
-        # 2. Clona il repository di Discord con i sottomoduli
-        git clone --recursive https://github.com/discordapp/discord-rpc.git
-        
-        # 3. FIX: Copia discord_rpc.h in discord-rpc.h per via del bug del nome
-        Copy-Item "discord-rpc\include\discord_rpc.h" "discord-rpc\include\discord-rpc.h" -Force
-        
-        # 4. FIX: Modifica l'header di linc per puntare al file corretto con l'underscore
-        cd ..
-        (Get-Content "linc\linc_discord_rpc.h") -replace 'discord-rpc\.h', 'discord_rpc.h' | Set-Content "linc\linc_discord_rpc.h"
-        
-        # 5. FIX: Aggiunge rapidjson (richiesto internamente da discord-rpc)
-        cd lib\discord-rpc
-        git clone https://github.com/Tencent/rapidjson.git
-        Copy-Item -Recurse -Force "rapidjson\include\rapidjson" "include\rapidjson"
 
     - name: Build with Lime
       run: |
