@@ -73,6 +73,24 @@ class Intro extends MusicBeatState
       super.create();
     }
 
+    // Prova i metodi di stop noti di hxCodec senza rompere la compilazione
+    // se nella tua versione alcuni non esistono.
+    function stopVideo()
+    {
+      for (name in ["finishVideo", "stop", "kill", "dispose"])
+      {
+        if (Reflect.hasField(video, name) || Reflect.isFunction(Reflect.field(video, name)))
+        {
+          try
+          {
+            Reflect.callMethod(video, Reflect.field(video, name), []);
+            return;
+          }
+          catch (e:Dynamic) {}
+        }
+      }
+    }
+
     function restoreSoundKeys()
     {
       FlxG.sound.muteKeys = TitleState.muteKeys;
@@ -89,7 +107,7 @@ class Intro extends MusicBeatState
       {
         skipped = true;
         video.finishCallback = null; // evita che il callback parta dopo lo skip
-        video.kill();                // ferma il video
+        stopVideo();                 // ferma il video
         FlxTween.cancelTweensOf(div);
         restoreSoundKeys();
         MusicBeatState.switchState(new TitleState());
