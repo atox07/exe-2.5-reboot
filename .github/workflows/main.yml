@@ -32,9 +32,16 @@ jobs:
     - name: Fix Discord RPC C++ Library
       run: |
         cd "C:\haxelib\discord_rpc\1,0,0"
-        mkdir lib
+        
+        # Se la cartella discord-rpc esiste già, la cancelliamo per evitare errori di git clone
+        if (Test-Path "lib\discord-rpc") { Remove-Item -Recurse -Force "lib\discord-rpc" }
+        
+        # Crea la cartella lib solo se non esiste (usando -Force per non far arrabbiare PowerShell)
+        if (!(Test-Path "lib")) { New-Item -ItemType Directory -Path "lib" -Force }
+        
         cd lib
-        git clone https://github.com/discordapp/discord-rpc.git
+        # Clona la libreria E i suoi sottomoduli (--recursive)
+        git clone --recursive https://github.com/discordapp/discord-rpc.git
 
     - name: Build with Lime
       run: |
