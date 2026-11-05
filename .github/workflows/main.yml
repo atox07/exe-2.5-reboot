@@ -29,10 +29,9 @@ jobs:
         haxelib install discord_rpc --quiet
         haxelib install linc_luajit --quiet
 
-    # QUESTO È IL PASSAGGIO NUOVO CHE RISOLVE L'ERRORE
     - name: Fix Discord RPC C++ Library
       run: |
-        cd C:\haxelib\discord_rpc\1,0,0
+        cd "C:\haxelib\discord_rpc\1,0,0"
         mkdir lib
         cd lib
         git clone https://github.com/discordapp/discord-rpc.git
