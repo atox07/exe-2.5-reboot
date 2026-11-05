@@ -35,9 +35,12 @@ using StringTools;
 
 class Intro extends MusicBeatState
 {
+    var div:FlxSprite;
+    var video:MP4Handler;
+    var skipped:Bool = false;
+
     override public function create()
     {
-      var div:FlxSprite;
       div = new FlxSprite();
       div.loadGraphic(Paths.image("cameostuff/divide"));
       div.alpha = 0;
@@ -48,23 +51,48 @@ class Intro extends MusicBeatState
       FlxG.sound.muteKeys = [];
   		FlxG.sound.volumeDownKeys = [];
   		FlxG.sound.volumeUpKeys = [];
-        var video = new MP4Handler();
+        video = new MP4Handler();
         video.canSkip=false;
 		video.finishCallback = function()
 		{
-      FlxG.sound.muteKeys = TitleState.muteKeys;
-      FlxG.sound.volumeDownKeys = TitleState.volumeDownKeys;
-      FlxG.sound.volumeUpKeys = TitleState.volumeUpKeys;    
+      if (skipped) return;
+      restoreSoundKeys();
       FlxTween.tween(div, {alpha: 1}, 3.4, {ease: FlxEase.quadInOut,
         onComplete: function(twn:FlxTween)
           {
             FlxTween.tween(div, {alpha: 0}, 3.4, {ease: FlxEase.quadInOut, 
               onComplete: function(twn:FlxTween){
-                MusicBeatState.switchState(new TitleState());
+                if (!skipped)
+                  MusicBeatState.switchState(new TitleState());
               }});
           }
         });
 		}
 		video.playVideo(Paths.video('HaxeFlixelIntro'));
+
+      super.create();
+    }
+
+    function restoreSoundKeys()
+    {
+      FlxG.sound.muteKeys = TitleState.muteKeys;
+      FlxG.sound.volumeDownKeys = TitleState.volumeDownKeys;
+      FlxG.sound.volumeUpKeys = TitleState.volumeUpKeys;
+    }
+
+    override function update(elapsed:Float)
+    {
+      super.update(elapsed);
+
+      // INVIO: salta l'intro e vai direttamente al TitleState
+      if (FlxG.keys.justPressed.ENTER && !skipped)
+      {
+        skipped = true;
+        video.finishCallback = null; // evita che il callback parta dopo lo skip
+        video.kill();                // ferma il video
+        FlxTween.cancelTweensOf(div);
+        restoreSoundKeys();
+        MusicBeatState.switchState(new TitleState());
+      }
     }
 }
