@@ -1,9 +1,7 @@
-name: Build Mod
+name: Build Mod Manuale
 
 on:
-  push:
-    branches: [ "main", "master" ]
-  workflow_dispatch: # Ti permette di avviarlo manualmente da un tasto
+  workflow_dispatch: # Avvia la build SOLO manualmente dal pulsante
 
 jobs:
   build-windows:
@@ -16,7 +14,7 @@ jobs:
     - name: Setup Haxe
       uses: krdlab/setup-haxe@v1
       with:
-        haxe-version: 4.2.5 # Psych 0.6.3 gira bene con questa versione
+        haxe-version: 4.2.5
 
     - name: Setup Haxelib & Dependencies
       run: |
@@ -30,7 +28,6 @@ jobs:
         haxelib install hscript --quiet
         haxelib install discord_rpc --quiet
         haxelib install linc_luajit --quiet
-        # Nota: se mancano altre lib, aggiungile qui
 
     - name: Build with Lime
       run: |
