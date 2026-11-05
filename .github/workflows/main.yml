@@ -29,19 +29,29 @@ jobs:
         haxelib install discord_rpc --quiet
         haxelib install linc_luajit --quiet
 
-    - name: Fix Discord RPC C++ Library
+    - name: Fix Discord RPC C++ Library and Headers
       run: |
         cd "C:\haxelib\discord_rpc\1,0,0"
         
-        # Se la cartella discord-rpc esiste già, la cancelliamo per evitare errori di git clone
-        if (Test-Path "lib\discord-rpc") { Remove-Item -Recurse -Force "lib\discord-rpc" }
-        
-        # Crea la cartella lib solo se non esiste (usando -Force per non far arrabbiare PowerShell)
-        if (!(Test-Path "lib")) { New-Item -ItemType Directory -Path "lib" -Force }
-        
+        # 1. Pulisce la cartella lib se esiste da build precedenti
+        if (Test-Path "lib") { Remove-Item -Recurse -Force "lib" }
+        New-Item -ItemType Directory -Path "lib" -Force | Out-Null
         cd lib
-        # Clona la libreria E i suoi sottomoduli (--recursive)
+        
+        # 2. Clona il repository di Discord con i sottomoduli
         git clone --recursive https://github.com/discordapp/discord-rpc.git
+        
+        # 3. FIX: Copia discord_rpc.h in discord-rpc.h per via del bug del nome
+        Copy-Item "discord-rpc\include\discord_rpc.h" "discord-rpc\include\discord-rpc.h" -Force
+        
+        # 4. FIX: Modifica l'header di linc per puntare al file corretto con l'underscore
+        cd ..
+        (Get-Content "linc\linc_discord_rpc.h") -replace 'discord-rpc\.h', 'discord_rpc.h' | Set-Content "linc\linc_discord_rpc.h"
+        
+        # 5. FIX: Aggiunge rapidjson (richiesto internamente da discord-rpc)
+        cd lib\discord-rpc
+        git clone https://github.com/Tencent/rapidjson.git
+        Copy-Item -Recurse -Force "rapidjson\include\rapidjson" "include\rapidjson"
 
     - name: Build with Lime
       run: |
